@@ -1,0 +1,46 @@
+name: rust but idh ideas
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+    # in theory, clang already installed
+
+    - name: Cache Cargo deps
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Build (rls)
+      # This command is platform-independent
+      run: cargo build --release --locked
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: widevinecdm-artifact-windows
+        path: target/release/widevinecdm.dll
+        retention-days: 7
